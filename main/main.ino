@@ -2,9 +2,9 @@
 #include "TimerOne.h"
 #include "EnableInterrupt.h"
 
-#define BUTTON_1 1
-#define BUTTON_2 2
-#define BUTTON_3 4
+#define BUTTON_1 2
+#define BUTTON_2 3
+#define BUTTON_3 5
 #define BUTTON_4 6
 #define LED_1 7
 #define LED_2 8
@@ -47,6 +47,7 @@ bool led_4_on = false;
 
 
 void shutDown(){
+  Serial.println("system on pause");
   systemOnPause=true;
   Timer1.stop();
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -74,19 +75,35 @@ void blinky(){
 void startGame(){
   initState=false;
   Timer1.stop();
+  digitalWrite(LED_RED, LOW);
 }
 
 void generatePattern(){
-  led_1_pattern = (random()%2==0);
-  led_2_pattern = (random()%2==0);
-  led_3_pattern = (random()%2==0);
-  led_4_pattern = (random()%2==0);
+  led_1_pattern = (random(10)%2==0);
+  led_2_pattern = (random(10)%2==0);
+  led_3_pattern = (random(10)%2==0);
+  led_4_pattern = (random(10)%2==0);
   setPattern=false;
   showPattern=true;
   showPatternInitialTime=millis();
+  Serial.println("pattern");
+  Serial.println(led_1_pattern);
+  Serial.println(led_2_pattern);
+  Serial.println(led_3_pattern);
+  Serial.println(led_4_pattern);
+  if(!led_1_pattern && !led_2_pattern && !led_3_pattern && !led_4_pattern){
+    generatePattern();
+  }
 }
 
 void displayPattern(){
+  digitalWrite(LED_1,led_1_pattern?HIGH:LOW);
+  digitalWrite(LED_2,led_2_pattern?HIGH:LOW);
+  digitalWrite(LED_3,led_3_pattern?HIGH:LOW);
+  digitalWrite(LED_4,led_4_pattern?HIGH:LOW);
+}
+
+void displayReponse(){
   digitalWrite(LED_1,led_1_on?HIGH:LOW);
   digitalWrite(LED_2,led_2_on?HIGH:LOW);
   digitalWrite(LED_3,led_3_on?HIGH:LOW);
@@ -169,17 +186,13 @@ void loop() {
   long currentTime = millis();
   if(initState){
     if(printInitMessage){
-      //Serial.println("Welcome to the Catch the Led Pattern Game. Press Key T1 to Start");
+      Serial.println("Welcome to the Catch the Led Pattern Game. Press Key T1 to Start");
       printInitMessage=false;
     }
-    /*
     if((currentTime-startingTime) > initStateTimeout){
       shutDown();
     }
-    */
-  } 
-  /*
-  else {
+  } else {
     if(setPattern){
       generatePattern();
     }
@@ -192,7 +205,15 @@ void loop() {
         responseInitialTime=millis();
       }
     }
-    if(responsePhase && (currentTime-responseInitialTime) > T3){
+    if(responsePhase){
+      displayReponse();
+    }
+    if(responsePhase ){
+      if((currentTime-responseInitialTime) > T3){
+
+      }
+      Serial.println("check response");
+      /*
       responsePhase=false;
       pausePhase=true;
       pausePhaseInitialTime=millis();
@@ -218,6 +239,7 @@ void loop() {
            responsePhase=false;
         }
       }
+      */
     }
     if(pausePhase){
        if((currentTime-pausePhaseInitialTime) > T1 ){
@@ -229,5 +251,4 @@ void loop() {
        }
     }
   }
-  */
 }
