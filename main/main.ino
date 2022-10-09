@@ -12,7 +12,7 @@
 #define LED_4 11
 #define LED_RED 13 
 
-int T1 = 5000; //pause between match
+int T1 = 2000; //pause between match
 int T2 = 5000; //time show pattern
 int T3 = 5000; //response time
 
@@ -86,11 +86,6 @@ void generatePattern(){
   setPattern=false;
   showPattern=true;
   showPatternInitialTime=millis();
-  Serial.println("pattern");
-  Serial.println(led_1_pattern);
-  Serial.println(led_2_pattern);
-  Serial.println(led_3_pattern);
-  Serial.println(led_4_pattern);
   if(!led_1_pattern && !led_2_pattern && !led_3_pattern && !led_4_pattern){
     generatePattern();
   }
@@ -163,6 +158,10 @@ void turnOff(){
   digitalWrite(LED_2,LOW);
   digitalWrite(LED_3,LOW);
   digitalWrite(LED_4,LOW);
+  led_1_on = false;
+  led_2_on = false;
+  led_3_on = false;
+  led_4_on = false;
 }
 
 void setup() {
@@ -202,22 +201,17 @@ void loop() {
       } else {
         turnOff();
         responsePhase=true;
+        showPattern=false;
         responseInitialTime=millis();
       }
     }
     if(responsePhase){
       displayReponse();
     }
-    if(responsePhase ){
-      if((currentTime-responseInitialTime) > T3){
-
-      }
-      Serial.println("check response");
-      /*
+    if(responsePhase && (currentTime-responseInitialTime) > T3){
       responsePhase=false;
       pausePhase=true;
       pausePhaseInitialTime=millis();
-      turnOff();
       if(
         led_1_pattern == led_1_on &&
         led_2_pattern == led_2_on &&
@@ -239,15 +233,20 @@ void loop() {
            responsePhase=false;
         }
       }
-      */
+      turnOff();
     }
     if(pausePhase){
        if((currentTime-pausePhaseInitialTime) > T1 ){
          setPattern=true;
          pausePhase=false;
        } 
-       if(notifyError && (currentTime-errorInitialTime) < errorNotificationTime) {
-        digitalWrite(LED_RED, HIGH);
+       if(notifyError) {
+         if((currentTime-errorInitialTime) > errorNotificationTime){
+           digitalWrite(LED_RED, LOW);
+           notifyError=false;
+         } else {
+           digitalWrite(LED_RED, HIGH);
+         }
        }
     }
   }
