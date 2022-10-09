@@ -25,6 +25,7 @@ long startingTime;
 long currentTime;
 int life=3;
 int points=0;
+int factor=500;
 
 bool setPattern=true;
 bool showPattern=false;
@@ -47,7 +48,7 @@ bool led_4_on = false;
 
 
 void shutDown(){
-  Serial.println("system on pause");
+  digitalWrite(LED_RED,LOW);
   systemOnPause=true;
   Timer1.stop();
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -63,6 +64,18 @@ void wakeUp(){
   systemOnPause=false;
 }
 
+void turnOff(){
+  digitalWrite(LED_1,LOW);
+  digitalWrite(LED_2,LOW);
+  digitalWrite(LED_3,LOW);
+  digitalWrite(LED_4,LOW);
+  led_1_on = false;
+  led_2_on = false;
+  led_3_on = false;
+  led_4_on = false;
+}
+
+//must becomr fade not blick
 void blinky(){
  if (!blinkFlag){
  digitalWrite(LED_RED, HIGH);
@@ -74,8 +87,17 @@ void blinky(){
 
 void startGame(){
   initState=false;
+  setPattern=true;
   Timer1.stop();
   digitalWrite(LED_RED, LOW);
+  Serial.println("Go!");
+}
+
+void endResponsePhase(){
+  responsePhase=false;
+  pausePhase=true;
+  pausePhaseInitialTime=millis();
+  turnOff();
 }
 
 void generatePattern(){
@@ -113,13 +135,53 @@ void initStateButton(){
     }
 }
 
+void gameOver(){
+  Serial.println("Game Over. Final Score: ");
+  Serial.println(points);
+  initState=true;
+  pausePhase=false;
+  notifyError=false;
+  printInitMessage=true;
+  startingTime=millis();
+  Timer1.restart();
+  life=3;
+  points=0;
+  turnOff();
+}
+
+void onError(){
+  notifyError=true;
+  errorInitialTime=millis();
+  life=life-1;
+  Serial.println("Penalty!");
+  if(life<=0){
+    gameOver();
+  }
+}
+
+void hidePattern(){
+   turnOff();
+   responsePhase=true;
+   showPattern=false;
+   responseInitialTime=millis();
+}
+
+void earlyResponseCheck(){
+  if(showPattern){
+    hidePattern();
+    endResponsePhase();
+    onError();
+  }
+}
+
 void onButton1Press(){
   if(initState){
     initStateButton();
   }else{
     if(responsePhase){
       led_1_on=true;
-    }
+    } 
+    earlyResponseCheck();
   }  
 }
 
@@ -130,6 +192,7 @@ void onButton2Press(){
     if(responsePhase){
       led_2_on=true;
     }
+    earlyResponseCheck();
   }  
 }
 
@@ -140,6 +203,7 @@ void onButton3Press(){
     if(responsePhase){
       led_3_on=true;
     }
+    earlyResponseCheck();
   }  
 }
 
@@ -150,18 +214,16 @@ void onButton4Press(){
     if(responsePhase){
       led_4_on=true;
     }
+    earlyResponseCheck();
   }  
 }
 
-void turnOff(){
-  digitalWrite(LED_1,LOW);
-  digitalWrite(LED_2,LOW);
-  digitalWrite(LED_3,LOW);
-  digitalWrite(LED_4,LOW);
-  led_1_on = false;
-  led_2_on = false;
-  led_3_on = false;
-  led_4_on = false;
+void onCorrectAnswer(){
+  Serial.println("New point! Score:");
+  Serial.println(points);
+  T2=T2-factor;
+  T3=T3-factor;
+  points=points+1;
 }
 
 void setup() {
@@ -199,45 +261,24 @@ void loop() {
       if((currentTime-showPatternInitialTime) < T2 ){
         displayPattern();
       } else {
-        turnOff();
-        responsePhase=true;
-        showPattern=false;
-        responseInitialTime=millis();
+        hidePattern();
       }
     }
     if(responsePhase){
       displayReponse();
     }
     if(responsePhase && (currentTime-responseInitialTime) > T3){
-      responsePhase=false;
-      pausePhase=true;
-      pausePhaseInitialTime=millis();
       if(
         led_1_pattern == led_1_on &&
         led_2_pattern == led_2_on &&
         led_3_pattern == led_3_on &&
         led_4_pattern == led_4_on 
       ){
-        T2=T2-500;
-        T3=T3-500;
-        points=points+1;
+        onCorrectAnswer();
       }else{
-        notifyError=true;
-        errorInitialTime=millis();
-        life=life-1;
-        Serial.println("Penalty!");
-        if(life==0){
-           Serial.println("Game Over. Final Score: ");
-           Serial.println(points);
-           initState=true;
-           pausePhase=false;
-           notifyError=false;
-           printInitMessage=true;
-           startingTime=millis();
-           Timer1.restart();
-        }
+        onError();
       }
-      turnOff();
+      endResponsePhase();
     }
     if(pausePhase){
        if((currentTime-pausePhaseInitialTime) > T1 ){
