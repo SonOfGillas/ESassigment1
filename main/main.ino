@@ -2,15 +2,15 @@
 #include "TimerOne.h"
 #include "EnableInterrupt.h"
 
-#define LED_RED 9 
-#define LED_1 8
-#define LED_2 7
-#define LED_3 6
-#define LED_4 5
-#define BUTTON_1 4
-#define BUTTON_2 3
-#define BUTTON_3 2
-#define BUTTON_4 1
+#define BUTTON_1 1
+#define BUTTON_2 2
+#define BUTTON_3 4
+#define BUTTON_4 6
+#define LED_1 7
+#define LED_2 8
+#define LED_3 10
+#define LED_4 11
+#define LED_RED 13 
 
 int T1 = 5000; //pause between match
 int T2 = 5000; //time show pattern
@@ -151,6 +151,10 @@ void turnOff(){
 void setup() {
   Serial.begin(9600);
   pinMode(LED_RED, OUTPUT);
+  pinMode(LED_1, OUTPUT);
+  pinMode(LED_2, OUTPUT);
+  pinMode(LED_3, OUTPUT);
+  pinMode(LED_4, OUTPUT);
   Timer1.initialize(1000000);
   Timer1.attachInterrupt(blinky);
   startingTime=millis();
@@ -165,13 +169,17 @@ void loop() {
   long currentTime = millis();
   if(initState){
     if(printInitMessage){
-      Serial.println("Welcome to the Catch the Led Pattern Game. Press Key T1 to Start");
+      //Serial.println("Welcome to the Catch the Led Pattern Game. Press Key T1 to Start");
       printInitMessage=false;
     }
+    /*
     if((currentTime-startingTime) > initStateTimeout){
       shutDown();
     }
-  } else {
+    */
+  } 
+  /*
+  else {
     if(setPattern){
       generatePattern();
     }
@@ -204,7 +212,8 @@ void loop() {
         life=life-1;
         Serial.println("Penalty!");
         if(life==0){
-           Serial.println("Game Over. Final Score: ",points);
+           Serial.println("Game Over. Final Score: ");
+           Serial.println(points);
            initState=true;
            responsePhase=false;
         }
@@ -220,4 +229,5 @@ void loop() {
        }
     }
   }
+  */
 }
