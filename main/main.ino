@@ -230,7 +230,11 @@ void loop() {
            Serial.println("Game Over. Final Score: ");
            Serial.println(points);
            initState=true;
-           responsePhase=false;
+           pausePhase=false;
+           notifyError=false;
+           printInitMessage=true;
+           startingTime=millis();
+           Timer1.restart();
         }
       }
       turnOff();
