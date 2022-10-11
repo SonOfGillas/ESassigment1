@@ -10,7 +10,8 @@
 #define LED_2 8
 #define LED_3 10
 #define LED_4 11
-#define LED_RED 13 
+#define LED_RED 13
+#define Potenziometer A0
 
 int T1 = 2000; //pause between match
 int T2 = 5000; //time show pattern
@@ -91,6 +92,18 @@ void startGame(){
   Timer1.stop();
   digitalWrite(LED_RED, LOW);
   Serial.println("Go!");
+  int level = analogRead(Potenziometer);
+
+  if(level<250){
+    factor=62;
+  } else if (level<500) {
+    factor=125;
+  } else if (level<750) {
+    factor=250;
+  } else if (level<1024) {
+    factor=500;
+  };
+
 }
 
 void endResponsePhase(){
